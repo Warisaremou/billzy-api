@@ -1,0 +1,18 @@
+FROM node:20-alpine AS api-builder
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+
+FROM node:20-alpine AS api
+WORKDIR /app
+
+COPY --from=api-builder /app/build ./build
+COPY --from=api-builder /app/src ./src
+COPY package* ./
+COPY tsconfig*.json ./
+
+RUN npm install --omit-=dev --ignore-scripts
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "api:prod"]

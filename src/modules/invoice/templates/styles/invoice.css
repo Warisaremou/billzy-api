@@ -1,0 +1,218 @@
+:root {
+  --muted: #f5f5f5;
+  --accent-foreground: #171717;
+  --input: #e5e5e5;
+  --border: #e5e5e5;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #0a0a0a;
+  margin: 0;
+  padding: 40px;
+  background: #ffffff;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.header-left h1 {
+  font-size: 19px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* Address Section */
+.addresses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.address-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.address-header {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.address-content {
+  display: flex;
+  flex-direction: column;
+}
+.address-content span {
+  white-space: pre-line;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 32px 0;
+}
+
+thead {
+  background-color: var(--muted);
+}
+
+th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-foreground);
+  padding: 8px;
+}
+
+tbody tr {
+  border-bottom: 1px solid;
+  border-color: color-mix(in oklab, var(--input) 70%, transparent);
+}
+
+td {
+  padding: 8px;
+  font-size: 12px;
+}
+
+/* Totals Section */
+.totals-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.payment-due-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-due-badge {
+  background-color: var(--muted);
+  padding: 8px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.payment-due-text {
+  margin-top: 12px;
+}
+
+.totals-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.total-row .label {
+  font-weight: 500;
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 4px 0;
+}
+
+.total-final {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Terms Section */
+.terms-section {
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.terms-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.terms-content {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.main-separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 32px 0;
+}
+
+/* Footer Payment Section */
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-title {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payment-note-badge {
+  background-color: #fff9eb;
+  color: #a77201;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.payment-note {
+  font-size: 11px;
+  font-weight: 500;
+}

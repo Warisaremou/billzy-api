@@ -1,0 +1,137 @@
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facture {{invoiceNumber}}</title>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-left">
+          <h1>Facture N° : {{invoiceNumber}}</h1>
+          <div class="date-row">
+            <span class="date-value">Date d'émission : {{issueDate}}</span>
+          </div>
+          <div class="date-row">
+            <span class="date-value">Date d'échéance : {{dueDate}}</span>
+          </div>
+        </div>
+        <div class="header-right">
+          {{#if logoUrl}}
+            <img src="{{logoUrl}}" class="logo" alt="logo-entreprise" />
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- Addresses -->
+      <div class="addresses">
+        <div class="address-block">
+          <span class="address-header">De</span>
+          <div class="address-content">
+            <span>{{sender.companyName}}</span>
+            <span>{{sender.fullAddress}}</span>
+            <span>Tél : {{sender.phone}}</span>
+            <span>TVA : {{sender.vatNumber}}</span>
+            <span>SIRET : {{sender.siret}}</span>
+          </div>
+        </div>
+
+        <div class="address-block">
+          <span class="address-header">À</span>
+          <div class="address-content">
+            <span>{{client.companyName}}</span>
+            <span>{{client.fullAddress}}</span>
+            <span>Tél : {{client.phone}}</span>
+            <span>TVA : {{client.vatNumber}}</span>
+            <span>SIRET : {{client.siret}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 35%">Libellé</th>
+            <th class="text-right" style="width: 15%">Quantité</th>
+            <th class="text-right" style="width: 15%">Prix unitaire</th>
+            <th class="text-right" style="width: 15%">TVA</th>
+            <th class="text-right" style="width: 15%">Total HT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each items}}
+            <tr>
+              <td>{{this.label}}</td>
+              <td>{{this.quantity}}</td>
+              <td>{{this.unitPrice}} €</td>
+              <td>{{this.vatRate}}</td>
+              <td>{{this.totalLine}} €</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <!-- Totals and Payment Due -->
+      <div class="totals-wrapper">
+        <div class="payment-due-section">
+          <div class="payment-due-badge">
+            <span>Échéance de paiement</span>
+          </div>
+          <p class="payment-due-text">A réception.</p>
+        </div>
+
+        <div class="totals-section">
+          <div class="total-row">
+            <span class="label">Total HT</span>
+            <span>{{totalHT}} €</span>
+          </div>
+          <div class="total-row">
+            <span class="label">TVA</span>
+            <span>{{totalVAT}} €</span>
+          </div>
+          <div class="separator"></div>
+          <div class="total-row">
+            <span class="label">Total TTC</span>
+            <span class="total-final">{{totalTTC}} €</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms Section -->
+      <div class="terms-section">
+        <span class="terms-title">Termes et conditions</span>
+
+        <p class="terms-content">
+          {{#if termsAndConditions}}
+            {{termsAndConditions}}
+          {{else}}
+            Termes et conditions non spécifiés.
+          {{/if}}
+        </p>
+
+      </div>
+
+      <div class="main-separator"></div>
+
+      <!-- Footer Payment Instructions -->
+      <div class="footer">
+        <div class="footer-title">Instructions de paiement</div>
+        {{#if bank}}
+          <div class="payment-details">
+            <span>Nom de l'entreprise: {{sender.companyName}}</span>
+            <span>IBAN: {{bank.iban}}</span>
+            <span>BIC: {{bank.bic}}</span>
+            <div class="payment-note-badge">
+              <span class="payment-note">Veuillez utiliser le numéro de la facture comme référence de paiement.
+              </span>
+            </div>
+          </div>
+        {{else}}
+          Instructions de paiement non spécifiées.
+        {{/if}}
+      </div>
+    </div>
+  </body>
+</html>

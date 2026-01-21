@@ -1,0 +1,186 @@
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+linting-job:
+  stage: lint
+  image: node:24
+  tags:
+    - general
+  only:
+    - main
+    - dev
+    - staging
+    - prod
+    - merge_requests
+  script:
+    - npm install
+    - npm run lint
+
+unit-testing-job:
+  stage: test
+  image: node:24
+  tags:
+    - general
+  only:
+    - main
+    - dev
+    - staging
+    - prod
+    - merge_requests
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+  coverage: '/Statements\s*: \d+\.\d+/'
+  script:
+    - npm install
+    - npm run test:cov
+
+integration-testing-job:
+  stage: test
+  image: node:24
+  services:
+    - name: mariadb:latest
+      alias: dbms
+      command: [
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+      ]
+      variables:
+        MARIADB_ROOT_PASSWORD: "rootpassword"
+        MARIADB_DATABASE: "my_invoice_test"
+  variables:
+    NODE_ENV: test
+    APP_PORT: 5050
+    APP_NAME: "Billzy"
+    API_PREFIX: api
+    API_VERSION: 1.0.2
+    APP_FALLBACK_LANGUAGE: en
+    FRONTEND_DOMAIN: https://app.groupe12.glassworks-playground.fr/
+    DATABASE_TYPE: mariadb
+    DATABASE_HOST: dbms
+    DATABASE_PORT: "3306"
+    DATABASE_USERNAME: api-test
+    DATABASE_PASSWORD: "testpassword"
+    DATABASE_ROOT_USERNAME: root
+    DATABASE_ROOT_PASSWORD: "rootpassword"
+    DATABASE_NAME: "my_invoice_test"
+    AUTH_JWT_SECRET: "${AUTH_JWT_SECRET}"
+  tags:
+    - general
+  only:
+    - main
+    - dev
+    - staging
+    - prod
+    - merge_requests
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+  coverage: '/Statements\s*: \d+\.\d+/'
+  script:
+    - sleep 10
+    - npm install
+    - npm run test:integration:cov
+
+build-job:
+  stage: build
+  tags:
+    - general
+  rules:
+    - if: $CI_COMMIT_TAG
+  image: docker:20.10.16
+  services:
+    - name: docker:20.10.16-dind
+      alias: docker
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/api-$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+    VERSIONED_TAG: $CI_REGISTRY_IMAGE/api-prod:$CI_COMMIT_TAG
+    LATEST_TAG: $CI_REGISTRY_IMAGE/api-prod:latest
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build --pull -t $IMAGE_TAG -f ./config/docker/Dockerfile.prod .
+    - echo "Push image with versioned tag"
+    - docker tag $IMAGE_TAG $VERSIONED_TAG     
+    - docker push $VERSIONED_TAG              
+    - docker tag $IMAGE_TAG $LATEST_TAG     
+    - docker push $LATEST_TAG              
+    - echo "✅ Done."
+
+deploy-job:
+  stage: deploy
+  tags:
+    - general
+  rules:
+    - if: $CI_COMMIT_TAG 
+      when: manual
+  image: alpine:latest
+  variables:
+    VPS_USER: myinvoice
+    VPS_IP: groupe12.glassworks-playground.fr
+  script:    
+    - chmod og= $SSH_PRIVATE_KEY
+    - apk update && apk add openssh-client
+    - |
+      ssh -i $SSH_PRIVATE_KEY -o StrictHostKeyChecking=no $VPS_USER@$VPS_IP << EOF
+        export MYSQL_ROOT_PASSWORD='${MYSQL_ROOT_PASSWORD}'
+        export DATABASE_PASSWORD='${DATABASE_PASSWORD}'
+        export AUTH_JWT_SECRET='${AUTH_JWT_SECRET}'
+        export REDIS_PASSWORD='${REDIS_PASSWORD}'
+        export API_IMAGE_TAG='${CI_COMMIT_TAG}'
+        export APP_NAME='${APP_NAME}'
+        export FRONTEND_DOMAIN='${FRONTEND_DOMAIN}'
+        export MAIL_HOST='${MAIL_HOST}'
+        export MAIL_PORT='${MAIL_PORT}'
+        export MAIL_USER='${MAIL_USER}'
+        export MAIL_PASSWORD='${MAIL_PASSWORD}'
+        export MAIL_DEFAULT_SENDER='${MAIL_DEFAULT_SENDER}'
+        export MAIL_DEFAULT_SENDER_NAME='${MAIL_DEFAULT_SENDER_NAME}'
+        cd ~/app
+        docker compose pull api
+        docker compose up --force-recreate api -d
+      EOF
+
+migrate-job:
+  stage: deploy
+  tags:
+    - general
+  rules:
+    - if: $CI_COMMIT_TAG 
+      when: manual
+  image: alpine:latest
+  variables:
+    VPS_USER: myinvoice
+    VPS_IP: groupe12.glassworks-playground.fr    
+    DATABASE_HOST: dbms
+    DATABASE_NETWORK: api-network
+    LATEST_TAG: $CI_REGISTRY_IMAGE/api-prod:latest
+  script:    
+    - chmod og= $SSH_PRIVATE_KEY
+    - apk update && apk add openssh-client
+    - ssh -i $SSH_PRIVATE_KEY -o StrictHostKeyChecking=no $VPS_USER@$VPS_IP "docker run --rm --pull=always --network $DATABASE_NETWORK -e DATABASE_HOST=$DATABASE_HOST -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD $LATEST_TAG npm run migration:run:prod"
+
+seed-job:
+  stage: deploy
+  tags:
+    - general
+  rules:
+    - if: $CI_COMMIT_TAG 
+      when: manual
+  image: alpine:latest
+  variables:
+    VPS_USER: myinvoice
+    VPS_IP: groupe12.glassworks-playground.fr    
+    DATABASE_HOST: dbms
+    DATABASE_NETWORK: api-network
+    LATEST_TAG: $CI_REGISTRY_IMAGE/api-prod:latest
+  script:    
+    - chmod og= $SSH_PRIVATE_KEY
+    - apk update && apk add openssh-client
+    - ssh -i $SSH_PRIVATE_KEY -o StrictHostKeyChecking=no $VPS_USER@$VPS_IP "docker run --rm --pull=always --network $DATABASE_NETWORK -e DATABASE_HOST=$DATABASE_HOST -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD $LATEST_TAG npm run seed:run:prod"
