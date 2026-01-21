@@ -13,7 +13,7 @@ This guide provides step-by-step instructions for installing and setting up the 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Warisaremou/billzy-api billzy-api
+git clone https://github.com/Warisaremou/billzy-api](https://github.com/Warisaremou/billzy-api.git billzy-api
 cd billzy-api
 ```
 
@@ -219,3 +219,4 @@ Run e2e tests:
 ```bash
 npm run test:e2e
 ```
+
